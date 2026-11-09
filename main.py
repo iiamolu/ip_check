@@ -87,3 +87,51 @@ def check_virustotal(ip):
         "vt_suspicious": stats.get("suispicious", 0),
         "vt_harmless": stats.get("harmless", 0)
     }
+
+# Checks AbuseIPDB
+def check_abuseipdb(ip):
+    headers = {
+        "Key": ABUSE_API_KEY,
+        # Accepting a response back in json format
+         "Accept": "application/json"
+    }
+
+    # Defining request parameters: within the last 90 days and request additional details if available
+    params = {
+        "ipAddress": ip,
+        "maxAgeInDays": 90,
+        "verbose": True
+    }
+
+    reponse = requests.get(
+        ABUSE_URL,
+        headers=headers,
+        params=params,
+        timeout=15
+    )
+    response.raise_for_status()
+
+    # Extracting JSON data and storing under "data" key
+    data = response.json()["data"]
+
+    reports = data.get("reports") or []
+
+    # Creates empty set; sets prevent duplicates
+    categories = set()
+
+    # Loops through each report and each category in each report
+    for report in reports:
+        for category in report.get("categories", []):
+            # Adding to set
+            categories.add(category)
+
+    return {
+        "abuse_score": data.get("abuseConfidenceScore"),
+        "total_reports": data.get("totalReports"),
+        "country": data.get("countryCode"),
+        "isp": data.get("isp"),
+        "abuse_categories": ", ".join(
+            # Sorts ints in categories set, converts ints to strings, joins the strings into 1 string seperated by commas and spaces
+            str(c) for c in sorted(categories)
+        )
+    }
