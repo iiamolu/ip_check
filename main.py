@@ -58,3 +58,32 @@ def read_ips(file_path):
 
     # Returns final list without duplicate IPs, preserves original order (Creates dictionary, dictionary keys must be unique; after, converts back to list)
     return list(dict.fromkeys(ips))
+
+# Checks virus total
+def check_virustotal(ip):
+    # HTTP header (provides API key)
+    headers = {
+        "x-apikey": VT_API_KEY
+    }
+
+    # Sending API GET request to retrieve info at specified API endpoint
+    response = requests.get(
+        VT_URL + ip,
+        # Passes HTTP header into request
+        headers=headers,
+        # Timeout after 15 seconds
+        timeout=15
+    )
+    # Checking if request succeeded (200)
+    response.raise_for_status()
+
+    # Extracts JSON data
+    attributes = reponse.json()["data"]["attributes"]
+    stats = attributes.get("last_analysis_stats", {})
+
+    # Return results; if key doesn't exist, return 0
+    return {
+        "vt_malicious": stats.get("malicious", 0),
+        "vt_suspicious": stats.get("suispicious", 0),
+        "vt_harmless": stats.get("harmless", 0)
+    }
