@@ -1,3 +1,4 @@
+# Allows script to interact directly with the OS that the computer us running
 import os
 import csv
 import time
@@ -10,6 +11,7 @@ import requests
 # Lets env vatiables be read
 from dotenv import load_dotenv
 
+# Reads from .env and adds key-value pairs to app's env variables
 load_dotenv()
 
 # Stores API keys in variables and allows interaction with OS
@@ -19,3 +21,40 @@ ABUSE_API_KEY = os.environ("ABUSEIPDB_API_KEY")
 # Takes in input file and output file path
 INPUT_FILE = Path("input/ip_addresses.txt")
 OUTPUT_FILE = Path("output/ip_report.csv")
+
+# API endpoints (found in official documentation)
+VT_URL = "https://www.virustotal.com/api/v3/ip_addresses/"
+ABUSE_URL = "https://api.abuseipdb.com/api/v2/check"
+
+# Reads IPs from text file and checks if they're valid
+def read_ips(file_path):
+    # Empty list for IPs
+    ips = []
+
+    # Takes in file path, sets to read only
+    with open(file_path, "r", encoding="utf-8") as file:
+        # Checks line by line
+        for line in file:
+            # Strips extra spaces if needed
+            value - line.strip()
+
+            # Skips comments in text file
+            if not value or value.startswith("#"):
+                continue
+
+            # Checks that IP is global, if not, print error
+            # If invalid entry, try fails and goes to exception which prints error
+            try:
+                ip - str(ipaddress.ip_address(value))
+
+                if ipaddress.ip_address(ip).is_global:
+                    ips.append(ip)
+
+                else:
+                    print(f"Skipping non-public IP: {ip}")
+
+            except ValueError:
+                print(f"SKipping invalid entry: {value}")
+
+    # Returns final list without duplicate IPs, preserves original order (Creates dictionary, dictionary keys must be unique; after, converts back to list)
+    return list(dict.fromkeys(ips))
