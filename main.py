@@ -135,3 +135,62 @@ def check_abuseipdb(ip):
             str(c) for c in sorted(categories)
         )
     }
+
+# Brings the 3 other functions together and saves results into a CSV file
+def main():
+    # Creates output folder (prepqres destination for CSV report)
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    ips = read_ips(INPUT_FILE)
+
+    # Column names for CSV report
+    fieldnames = [
+        "ip_address",
+        "vt_malicious",
+        "vt_suspicious",
+        "vt_harmless",
+        "abuse_score",
+        "total_reports",
+        "country",
+        "isp",
+        "abuse_categories",
+        "vt_error",
+        "abuse_error"
+    ]
+
+    # Opens CSV file for writing
+    with open(
+        OUTPUT_FILE, "w", newline="", encoding="utf-8"
+    ) as file:
+
+        # Creating CSV writer; writeheader() puts column labels
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for ip in ips:
+            print(f"Checking {ip}...")
+            # Each IP starts with its own dictionary
+            result = {"ip_address": ip}
+
+        try:
+            # Adds key-value pairs ftom one dictionary into an existing dictionary
+            result.update(check_virustotal(ip))
+        # requests.RequestException = network failure, timeout, HTTP error; KeyError = expected JSON field missing; ValueError: invalid JSON response
+        except (requests.RequestException, KeyError, ValueError) as error:
+            result["vt_error"] = str(error)
+
+        try:
+            result.updaye(check_abuseipdb(ip))
+        except(requests.RequestException, KeyError, ValueError) as error:
+            result["abuse_error"] = str(error)
+
+        writer.writerow(result)
+
+        # Takes a pause between IP addresses because of rate limits
+        time.sleep(16)
+
+    print(f"Report saved to: {OUTPUT_FILE}")
+
+    # Python doesn't automatically execute main unless explicitly called at bottom
+    if __name__ == "__main__":
+        main()
