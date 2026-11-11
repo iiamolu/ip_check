@@ -36,7 +36,7 @@ def read_ips(file_path):
         # Checks line by line
         for line in file:
             # Strips extra spaces if needed
-            value - line.strip()
+            value = line.strip()
 
             # Skips comments in text file
             if not value or value.startswith("#"):
@@ -45,7 +45,7 @@ def read_ips(file_path):
             # Checks that IP is global, if not, print error
             # If invalid entry, try fails and goes to exception which prints error
             try:
-                ip - str(ipaddress.ip_address(value))
+                ip = str(ipaddress.ip_address(value))
 
                 if ipaddress.ip_address(ip).is_global:
                     ips.append(ip)
@@ -78,13 +78,13 @@ def check_virustotal(ip):
     response.raise_for_status()
 
     # Extracts JSON data
-    attributes = reponse.json()["data"]["attributes"]
+    attributes = response.json()["data"]["attributes"]
     stats = attributes.get("last_analysis_stats", {})
 
     # Return results; if key doesn't exist, return 0
     return {
         "vt_malicious": stats.get("malicious", 0),
-        "vt_suspicious": stats.get("suispicious", 0),
+        "vt_suspicious": stats.get("suspicious", 0),
         "vt_harmless": stats.get("harmless", 0)
     }
 
@@ -103,7 +103,7 @@ def check_abuseipdb(ip):
         "verbose": True
     }
 
-    reponse = requests.get(
+    response = requests.get(
         ABUSE_URL,
         headers=headers,
         params=params,
@@ -169,28 +169,30 @@ def main():
 
         for ip in ips:
             print(f"Checking {ip}...")
+            
             # Each IP starts with its own dictionary
             result = {"ip_address": ip}
 
-        try:
-            # Adds key-value pairs ftom one dictionary into an existing dictionary
-            result.update(check_virustotal(ip))
-        # requests.RequestException = network failure, timeout, HTTP error; KeyError = expected JSON field missing; ValueError: invalid JSON response
-        except (requests.RequestException, KeyError, ValueError) as error:
-            result["vt_error"] = str(error)
+            try:
+                # Adds key-value pairs ftom one dictionary into an existing dictionary
+                result.update(check_virustotal(ip))
+            # requests.RequestException = network failure, timeout, HTTP error; KeyError = expected JSON field missing; ValueError: invalid JSON response
+            except (requests.RequestException, KeyError, ValueError) as error:
+                result["vt_error"] = str(error)
 
-        try:
-            result.updaye(check_abuseipdb(ip))
-        except(requests.RequestException, KeyError, ValueError) as error:
-            result["abuse_error"] = str(error)
+            try:
+                result.update(check_abuseipdb(ip))
+            except(requests.RequestException, KeyError, ValueError) as error:
+                result["abuse_error"] = str(error)
 
-        writer.writerow(result)
+            writer.writerow(result)
 
         # Takes a pause between IP addresses because of rate limits
         time.sleep(16)
 
     print(f"Report saved to: {OUTPUT_FILE}")
 
-    # Python doesn't automatically execute main unless explicitly called at bottom
-    if __name__ == "__main__":
-        main()
+    
+# Python doesn't automatically execute main unless explicitly called at bottom
+if __name__ == "__main__":
+    main()
