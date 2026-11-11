@@ -187,8 +187,8 @@ def main():
 
             writer.writerow(result)
 
-        # Takes a pause between IP addresses because of rate limits
-        time.sleep(16)
+            # Takes a pause between IP addresses because of rate limits
+            time.sleep(16)
 
     print(f"Report saved to: {OUTPUT_FILE}")
 
