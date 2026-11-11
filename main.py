@@ -14,9 +14,9 @@ from dotenv import load_dotenv
 # Reads from .env and adds key-value pairs to app's env variables
 load_dotenv()
 
-# Stores API keys in variables and allows interaction with OS
-VT_API_KEY = os.environ["VIRUSTOTAL_API_KEY"]
-ABUSE_API_KEY = os.environ["ABUSEIPDB_API_KEY"]
+# Stores API keys in variables and allows interaction with OS; getenv() returns none if variable is missing, environ[] does not and fails immediately
+VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+ABUSE_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
 
 # Takes in input file and output file path
 INPUT_FILE = Path("input/ip_addresses.txt")
