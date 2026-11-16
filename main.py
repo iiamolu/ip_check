@@ -151,9 +151,9 @@ def main():
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     if not INPUT_FILE.is.file():
-    raise FileNotFoundError(
-        f"Input file not found: {INPUT_FILE}"
-    )
+        raise FileNotFoundError(
+            f"Input file not found: {INPUT_FILE}"
+        )
 
     ips = read_ips(INPUT_FILE)
 
