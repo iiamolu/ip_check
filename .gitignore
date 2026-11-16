@@ -1,4 +1,4 @@
 /.env
 .venv/
-.output/
-.input/
+/ip_addresses.txt
+/ip_report.csv
