@@ -1,4 +1,4 @@
 /.env
 .venv/
-/.output
-/.input
+.output/
+.input/
