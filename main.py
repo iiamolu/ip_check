@@ -14,9 +14,12 @@ from dotenv import load_dotenv
 # Reads from .env and adds key-value pairs to app's env variables
 load_dotenv()
 
-# Stores API keys in variables and allows interaction with OS; getenv() returns none if variable is missing, environ[] does not and fails immediately
+# Stores API keys in variables and allows interaction with OS; getenv() returns none if variable is missing, environ[] does not and fails immediately (KeyError)
 VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
 ABUSE_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
+
+if not VT_API_KEY or not ABUSE_API_KEY:
+    raise RuntimeError("Required API key is missing.")
 
 # Takes in input file and output file path
 INPUT_FILE = Path("input/ip_addresses.txt")
@@ -25,6 +28,12 @@ OUTPUT_FILE = Path("output/ip_report.csv")
 # API endpoints (found in official documentation)
 VT_URL = "https://www.virustotal.com/api/v3/ip_addresses/"
 ABUSE_URL = "https://api.abuseipdb.com/api/v2/check"
+
+# CSV formula injection protection
+def safe_csv_value(value):
+    if isinstance(value, str) and value.startswith(("=", "+", "-", "@")):
+        return "'" + value
+    return value
 
 # Reads IPs from text file and checks if they're valid
 def read_ips(file_path):
@@ -141,6 +150,11 @@ def main():
     # Creates output folder (prepqres destination for CSV report)
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+    if not INPUT_FILE.is.file():
+    raise FileNotFoundError(
+        f"Input file not found: {INPUT_FILE}"
+    )
+
     ips = read_ips(INPUT_FILE)
 
     # Column names for CSV report
@@ -185,7 +199,10 @@ def main():
             except(requests.RequestException, KeyError, ValueError) as error:
                 result["abuse_error"] = str(error)
 
-            writer.writerow(result)
+            writer.writerow({
+                key: safe_csv_value(value)
+                for key, value in result.items()
+            })
 
             # Takes a pause between IP addresses because of rate limits
             time.sleep(16)
