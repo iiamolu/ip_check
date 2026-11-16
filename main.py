@@ -15,11 +15,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Stores API keys in variables and allows interaction with OS; getenv() returns none if variable is missing, environ[] does not and fails immediately (KeyError)
-VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
-ABUSE_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
+VT_API_KEY = None
+ABUSE_API_KEY = None
 
-if not VT_API_KEY or not ABUSE_API_KEY:
-    raise RuntimeError("Required API key is missing.")
+
+def validate_api_keys():
+    global VT_API_KEY, ABUSE_API_KEY
+
+    VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+    ABUSE_API_KEY = os.getenv("ABUSEIPDB_API_KEY")
+
+    if not VT_API_KEY or not ABUSE_API_KEY:
+        raise RuntimeError("Required API key is missing.")
+
 
 # Takes in input file and output file path
 INPUT_FILE = Path("input/ip_addresses.txt")
@@ -147,10 +155,12 @@ def check_abuseipdb(ip):
 
 # Brings the 3 other functions together and saves results into a CSV file
 def main():
+    validate_api_keys()
+
     # Creates output folder (prepqres destination for CSV report)
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    if not INPUT_FILE.is.file():
+    if not INPUT_FILE.is_file():
         raise FileNotFoundError(
             f"Input file not found: {INPUT_FILE}"
         )
