@@ -136,11 +136,25 @@ def check_abuseipdb(ip):
     # Creates empty set; sets prevent duplicates
     categories = set()
 
+    # Empty list to store comments
+    comments = []
+
     # Loops through each report and each category in each report
     for report in reports:
         for category in report.get("categories", []):
             # Adding to set
             categories.add(category)
+
+        # Extract report comments and timestamp
+        comment = report.get("comment")
+        reported_at = report.get("reportedAt", "Unknown date")
+
+        if comment and comment.strip():
+            # Adds to comment list
+            comments.append(
+                # Skips missing/empty comments
+                f"[{reported_at}] {comment.strip()}"
+            )
 
     return {
         "abuse_score": data.get("abuseConfidenceScore"),
@@ -150,7 +164,8 @@ def check_abuseipdb(ip):
         "abuse_categories": ", ".join(
             # Sorts ints in categories set, converts ints to strings, joins the strings into 1 string seperated by commas and spaces
             str(c) for c in sorted(categories)
-        )
+        ),
+        "abuse_comments": " | ".join(comments)
     }
 
 # Brings the 3 other functions together and saves results into a CSV file
@@ -178,6 +193,7 @@ def main():
         "country",
         "isp",
         "abuse_categories",
+        "abuse_comments",
         "vt_error",
         "abuse_error"
     ]
@@ -215,7 +231,7 @@ def main():
             })
 
             # Takes a pause between IP addresses because of rate limits
-            time.sleep(16)
+            time.sleep(1)
 
     print(f"Report saved to: {OUTPUT_FILE}")
 
